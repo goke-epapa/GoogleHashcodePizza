@@ -67,18 +67,32 @@ public class PizzaCutter {
             Point start = new Point(row, 0);
 
             int columnLength = pizza.H > pizza.C ? pizza.C : pizza.H;
-            for (int column = 0; column < columnLength; column++) {
-                if (pizza.grid.get(row).get(column) == 'T') {
-                    numOfTomatoes++;
+
+            int presentColumn = 0;
+            int endColumn = columnLength;
+            int numOfIterations = 0;
+            while (numOfIterations < pizza.C) {
+                for (int column = presentColumn; column < endColumn; column++) {
+                    if (pizza.grid.get(row).get(column) == 'T') {
+                        numOfTomatoes++;
+                    }
+
+                    if (pizza.grid.get(row).get(column) == 'M') {
+                        numOfMushrooms++;
+                    }
                 }
 
-                if (pizza.grid.get(row).get(column) == 'M') {
-                    numOfMushrooms++;
+                if (numOfMushrooms >= pizza.L && numOfTomatoes >= pizza.L) {
+                    slices.add(new Slice(start, new Point(row, endColumn - 1)));
                 }
-            }
 
-            if (numOfMushrooms >= pizza.L && numOfTomatoes >= pizza.L) {
-                slices.add(new Slice(start, new Point(row, columnLength - 1)));
+                numOfMushrooms = 0;
+                numOfTomatoes = 0;
+                presentColumn = endColumn;
+                start = new Point(row, presentColumn);
+                endColumn = (pizza.H > (pizza.R - endColumn)) ? (pizza.R - endColumn) + presentColumn : pizza.H + presentColumn;
+
+                numOfIterations += endColumn;
             }
         }
 
