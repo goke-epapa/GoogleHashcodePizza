@@ -1,8 +1,7 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class PizzaCutter {
     private static String[] datasets = new String[]{"a_example", "b_small", "c_medium", "d_big"};
@@ -12,6 +11,8 @@ public class PizzaCutter {
         for (int i = 0; i < datasets.length; i++) {
             process(datasets[i]);
         }
+
+        zipFile("src");
     }
 
     private static void process(String filename) throws IOException {
@@ -106,5 +107,55 @@ public class PizzaCutter {
 
     private static void closeOutputFile(FileWriter fileWriter) throws IOException {
         fileWriter.close();
+    }
+
+
+    /**
+     * Method to zip a file. It accepts the filename, path or directory name and creates a zip of the specified file
+     * @param sourceFile String
+     * @throws IOException
+     */
+    private static void zipFile(final String sourceFile) throws IOException {
+
+        File fileToZip = new File(sourceFile);
+
+        FileOutputStream fos = new FileOutputStream(sourceFile + ".zip");
+        ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+        zipper(fileToZip, sourceFile, zipOut);
+
+        zipOut.close();
+        fos.close();
+    }
+
+    private static void zipper(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+
+
+            File[] children = fileToZip.listFiles();
+            for (File childFile : children != null ? children : new File[0]) {
+                zipper(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+            return;
+        }
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();
     }
 }
